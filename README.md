@@ -15,3 +15,5 @@ remnote 快速 anki 制卡
 其中 Plugin URL 有 2 个参数可以设置，分别是卡片类型 `modelName` (默认 remnote) 和 牌组 `deckName` (默认 test) ，`Plugin URL` 例子：
 
 `https://remnote-to-anki.vercel.app?modelName=remnote&deckName=测试牌组`
+
+> github 备用地址： https://cdn.jsdelivr.net/gh/yoyooyooo/remnote-to-anki/index.html
