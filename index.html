@@ -98,12 +98,17 @@
             return a;
           } else {
             let text = a.text || "";
+            // 图片
             if (a.i === "i" && a.url) {
               if (a.loading === false) {
                 text = `<img src="${a.url}" ${a.width ? `width="${a.width}"` : ""} ${
                   a.height ? `height="${a.height}"` : ""
                 }/>`;
               }
+            }
+            // 代码块
+            if (a.i === "o") {
+              return `<pre style="background-color:#e6e6e6;padding: 12px;">${text}</pre>`;
             }
             if (a.type === "latex" || a.x) {
               text = `\\(${text}\\)`;
