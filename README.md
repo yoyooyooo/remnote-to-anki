@@ -16,6 +16,8 @@ remnote 快速 anki 制卡
 
 `https://remnote-to-anki.vercel.app?modelName=remnote&deckName=测试牌组`
 
+> 有条件的建议把 index.html 弄到本地起个服务访问，速度快一点
+
 ## 使用
 
 先打开 anki，然后光标聚焦到某 rem，触发快捷键。
