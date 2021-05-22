@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Remnote to Anki</title>
+    <script src="https://cdn.jsdelivr.net/gh/remnoteio/remnote-api@latest/RemNoteAPI.js"></script>
+    <style>
+      body {
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: -10px;
+      }
+
+      #result {
+        text-align: center;
+        font-size: 22px;
+      }
+    </style>
+    <script type="module">
+      (async () => {
+        const { remId } = await RemNoteAPI.v0.get_context();
+        const refercence = `https://www.remnote.io/document/${remId}`;
+        await saveRemToAnki();
+
+        async function saveRemToAnki() {
+          const sp = new URLSearchParams(location.search);
+          const rem = await RemNoteAPI.v0.get(remId);
+          const res = await addCard({
+            modelName: sp.get("modelName") || "remnote",
+            deckName: sp.get("deckName") || "test",
+            fields: {
+              正面: String.raw`${await getRemText(remId, false)}`,
+              背面: `${
+                rem.children.length > 0
+                  ? (await Promise.all(rem.children.map((remId) => getRemText(remId)))).join("")
+                  : ""
+              }<div class="refercence" style="margin-top: 100px"><a href="${refercence}" target="_blank">${refercence}</a></div>`
+            }
+          });
+          return res;
+        }
+
+        function parseRemName(a) {
+          if (typeof a === "string") {
+            return a;
+          } else {
+            let text = a.text;
+            if (a.type === "latex" || a.x) {
+              text = `\\(${text}\\)`;
+              if (a.block) {
+                text = `<div class="block-latex" style="display: flex;justify-content: center;">${text}</div>`;
+              }
+            }
+            // a.h = 1,2,3,4,6,5   (注意6和5顺序)
+            // 分别对应 opt+cmd+4,5,6,7,8,9
+            if (a.h === 1) {
+              text = `<span class="highlight-red">${text}</span>`;
+            }
+            if (a.h === 2) {
+              text = `<span class="highlight-orange">${text}</span>`;
+            }
+            if (a.h === 3) {
+              text = `<span class="highlight-yellow">${text}</span>`;
+            }
+            if (a.h === 4) {
+              text = `<span class="highlight-green">${text}</span>`;
+            }
+            if (a.h === 6) {
+              text = `<span class="highlight-blue">${text}</span>`;
+            }
+            if (a.h === 5) {
+              text = `<span class="highlight-purple">${text}</span>`;
+            }
+            if (a.b) {
+              text = `<b>${text}</b>`;
+            }
+            if (a.l) {
+              text = `<em>${text}</em>`;
+            }
+            if (a.q) {
+              text = `<span class="quote">${text}</span>`;
+            }
+            return text;
+          }
+        }
+
+        async function getRemText(remIdOrRem, withChildren = true) {
+          const rem =
+            typeof remIdOrRem === "string" ? await RemNoteAPI.v0.get(remIdOrRem) : remIdOrRem;
+          const html = await Promise.all(rem.name.map((a) => parseRemName(a)));
+
+          return `<div class="rem"><div class="main" style="display:flex;white-space:pre-wrap;"><div class="rem-text" style="width: 100%;">${html.join(
+            ""
+          )}</div></div>${
+            withChildren && rem.children.length > 0
+              ? `<div class="children" style="padding-left: 2em;">${(
+                  await Promise.all(rem.children.map(async (remId) => await getRemText(remId)))
+                ).join("")}</div>`
+              : ""
+          }</div>`;
+        }
+        async function addCard(note) {
+          return fetch("http://127.0.0.1:8765", {
+            method: "POST",
+            // mode: "no-cors",
+            body: JSON.stringify({
+              action: "addNote",
+              params: {
+                note
+              }
+            })
+          })
+            .then((res) => {
+              try {
+                return res.json();
+              } catch (e) {
+                return res.text();
+              }
+            })
+            .then((res) => {
+              const $result = document.querySelector("#result");
+              let delay = 5000;
+              if (typeof res === "number") {
+                console.log(`成功添加到 anki`);
+                $result.innerText = "成功添加到 anki";
+                delay = 1000;
+              } else if (res.error === "cannot create note because it is a duplicate") {
+                console.log(`重复`);
+                $result.innerText = "卡片重复";
+              } else if (res.error) {
+                console.log(`err =====> `, res.error);
+                $result.innerText = JSON.stringify(res.error);
+              }
+
+              setTimeout(() => {
+                RemNoteAPI.v0.close_popup();
+              }, delay);
+            })
+            .catch((err) => {
+              console.log(err);
+              document.querySelector(
+                "#result"
+              ).innerText = `请检查是否开启Anki，且确保安装了 anki-connect 插件`;
+              setTimeout(() => {
+                RemNoteAPI.v0.close_popup();
+              }, 5000);
+            });
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="result">loading...</div>
+  </body>
+</html>
