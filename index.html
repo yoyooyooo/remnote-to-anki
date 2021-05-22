@@ -42,6 +42,10 @@
         const refercence = `https://www.remnote.io/document/${remId}`;
         const sp = new URLSearchParams(location.search);
         let deckName = sp.get("deckName") || "test";
+        let modelName = sp.get("modelName") || "remnote";
+        let modelName_cloze = sp.get("modelName_cloze");
+        let cloze = !!sp.get("cloze") || false;
+        let clozeHTML = ""; // 正面如果包含下划线，被视作填空题
         if (deckName === "select_manually") {
           const deckNames = await fetchAnki({ action: "deckNames" });
           const div = document.createElement("div");
@@ -78,12 +82,15 @@
 
         async function saveRemToAnki() {
           const rem = await RemNoteAPI.v0.get(remId);
+          const frontHTML = await getRemText(remId, false);
+
           const res = await addCard({
-            modelName: sp.get("modelName") || "remnote",
+            modelName: cloze && clozeHTML ? modelName_cloze || `${modelName}-cloze` : modelName,
             deckName,
             fields: {
-              正面: String.raw`${await getRemText(remId, false)}`,
-              背面: `${
+              frontside: String.raw`${frontHTML}`,
+              ...(cloze && clozeHTML ? { frontside_cloze: String.raw`${clozeHTML}` } : {}),
+              backside: String.raw`${
                 rem.children.length > 0
                   ? (await Promise.all(rem.children.map((remId) => getRemText(remId)))).join("")
                   : ""
@@ -115,6 +122,10 @@
               if (a.block) {
                 text = `<div class="block-latex" style="display: flex;justify-content: center;">${text}</div>`;
               }
+            }
+            // 下划线优先，被用作填空
+            if (a.u) {
+              text = `<u>${text}</u>`;
             }
             // a.h = 1,2,3,4,6,5   (注意6和5顺序)
             // 分别对应 opt+cmd+4,5,6,7,8,9
@@ -153,12 +164,14 @@
           const rem =
             typeof remIdOrRem === "string" ? await RemNoteAPI.v0.get(remIdOrRem) : remIdOrRem;
           if (rem.found === false) return "";
-          console.log(rem);
-          const html = await Promise.all(rem.name.map((a) => parseRemName(a)));
+          // console.log(rem);
+          const html = (await Promise.all(rem.name.map((a) => parseRemName(a)))).join("");
+          if (cloze) {
+            const html2 = html.replace(/\<u\>(.*?)\<\/u\>/g, "{{c1::$1}}");
+            html !== html2 && (clozeHTML = html2);
+          }
 
-          return `<div class="rem"><div class="main" style="display:flex;white-space:pre-wrap;"><div class="rem-text" style="width: 100%;">${html.join(
-            ""
-          )}</div></div>${
+          return `<div class="rem"><div class="main" style="display:flex;white-space:pre-wrap;"><div class="rem-text" style="width: 100%;">${html}</div></div>${
             withChildren && rem.children.length > 0
               ? `<div class="children" style="padding-left: 2em;">${(
                   await Promise.all(rem.children.map(async (remId) => await getRemText(remId)))
@@ -210,7 +223,7 @@
             }
 
             setTimeout(() => {
-              RemNoteAPI.v0.close_popup();
+              // RemNoteAPI.v0.close_popup();
             }, delay);
           });
         }
