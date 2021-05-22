@@ -17,7 +17,10 @@ remnote 快速 anki 制卡。
 | :--------------------------------: | :--------: | :-------: | :---------: | :------: |
 | https://remnote-to-anki.vercel.app |   100px    |   220px   |    Read     |  Popup   |
 
-其中 Plugin URL 有 2 个参数可以设置，分别是卡片类型 `modelName` (默认 remnote) 和 牌组 `deckName` (默认 test) ，`Plugin URL` 例子：
+其中 Plugin URL 有 2 个参数可以设置，分别是卡片类型 `modelName` (默认 remnote) 和 牌组 `deckName` (默认 test) ，
+其中当 `deckName=select_manually` 时弹出的窗口可以选择牌组。建议添加 2 个插件，分别设置 2 个快捷键，一个为常用牌组，一个为手动选择排序。
+
+`Plugin URL` 例子：
 
 `https://remnote-to-anki.vercel.app?modelName=remnote&deckName=测试牌组`
 
@@ -25,7 +28,7 @@ remnote 快速 anki 制卡。
 
 ## 使用
 
-先打开 anki，确保设置了[自定义卡片类型](#参考卡片类型)，或者存在 名称为 `remnote` 的卡片类型。然后光标聚焦到某 rem，触发快捷键。
+先打开 anki，确保设置了[自定义卡片类型](#参考卡片类型)，或者存在名称为 `remnote` 的卡片类型。然后光标聚焦到某 rem，触发快捷键。
 
 https://user-images.githubusercontent.com/18062745/119215477-7a3acc80-bb00-11eb-8c9b-ec66fcea096a.mov
 

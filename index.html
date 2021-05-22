@@ -11,28 +11,76 @@
         height: 100vh;
         margin: 0;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         margin-top: -10px;
+        position: relative;
       }
 
       #result {
         text-align: center;
         font-size: 22px;
       }
+
+      #confirm {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: -8px;
+        background: #fff;
+        border: 1px solid #ddd;
+        box-shadow: 0 0 6px -3px rgb(0 0 0 / 0.3);
+        padding: 4px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
     </style>
     <script type="module">
       (async () => {
         const { remId } = await RemNoteAPI.v0.get_context();
         const refercence = `https://www.remnote.io/document/${remId}`;
-        await saveRemToAnki();
+        const sp = new URLSearchParams(location.search);
+        let deckName = sp.get("deckName") || "test";
+        if (deckName === "select_manually") {
+          const deckNames = await fetchAnki({ action: "deckNames" });
+          const div = document.createElement("div");
+          window.__handleConfirm = async function () {
+            document.querySelector("#result").style.display = "block";
+            const selectDeck = document.querySelector("#deckNames");
+            deckName = selectDeck.value;
+            let historyDeckNames = getHistoryDeckNames();
+            window.sessionStorage.setItem(
+              "historyDeckNames",
+              JSON.stringify([...new Set([deckName, ...historyDeckNames])])
+            );
+            document.querySelector("#confirm").remove();
+            document.querySelector("#deckNames").remove();
+            await saveRemToAnki();
+          };
+          // 最近选择过的牌组提到前面
+          const historyDeckNames = getHistoryDeckNames();
+          for (let i = 0; i < deckNames.length; i++) {
+            const deckName = deckNames[i];
+            if (historyDeckNames.includes(deckName)) {
+              deckNames.splice(i, 1);
+            }
+          }
+          deckNames.unshift(...historyDeckNames);
+          div.innerHTML = `<select id="deckNames">${deckNames
+            .map((a) => `<option>${a}</option>`)
+            .join("")}</select><button id="confirm" onclick="__handleConfirm()">确定</button>`;
+          document.querySelector("#result").style.display = "none";
+          document.body.appendChild(div);
+        } else {
+          await saveRemToAnki();
+        }
 
         async function saveRemToAnki() {
-          const sp = new URLSearchParams(location.search);
           const rem = await RemNoteAPI.v0.get(remId);
           const res = await addCard({
             modelName: sp.get("modelName") || "remnote",
-            deckName: sp.get("deckName") || "test",
+            deckName,
             fields: {
               正面: String.raw`${await getRemText(remId, false)}`,
               背面: `${
@@ -99,6 +147,7 @@
         async function getRemText(remIdOrRem, withChildren = true) {
           const rem =
             typeof remIdOrRem === "string" ? await RemNoteAPI.v0.get(remIdOrRem) : remIdOrRem;
+          if (rem.found === false) return "";
           console.log(rem);
           const html = await Promise.all(rem.name.map((a) => parseRemName(a)));
 
@@ -112,16 +161,11 @@
               : ""
           }</div>`;
         }
-        async function addCard(note) {
+
+        function fetchAnki(params) {
           return fetch("http://127.0.0.1:8765", {
             method: "POST",
-            // mode: "no-cors",
-            body: JSON.stringify({
-              action: "addNote",
-              params: {
-                note
-              }
-            })
+            body: JSON.stringify(params)
           })
             .then((res) => {
               try {
@@ -130,25 +174,6 @@
                 return res.text();
               }
             })
-            .then((res) => {
-              const $result = document.querySelector("#result");
-              let delay = 5000;
-              if (typeof res === "number") {
-                console.log(`成功添加到 anki`);
-                $result.innerText = "成功添加到 anki";
-                delay = 1000;
-              } else if (res.error === "cannot create note because it is a duplicate") {
-                console.log(`重复`);
-                $result.innerText = "卡片重复";
-              } else if (res.error) {
-                console.log(`err =====> `, res.error);
-                $result.innerText = JSON.stringify(res.error);
-              }
-
-              setTimeout(() => {
-                RemNoteAPI.v0.close_popup();
-              }, delay);
-            })
             .catch((err) => {
               console.log(err);
               document.querySelector(
@@ -156,8 +181,43 @@
               ).innerText = `请检查是否开启Anki，且确保安装了 anki-connect 插件`;
               setTimeout(() => {
                 RemNoteAPI.v0.close_popup();
-              }, 5000);
+              }, 2000);
             });
+        }
+
+        async function addCard(note) {
+          return fetchAnki({
+            action: "addNote",
+            params: { note }
+          }).then((res) => {
+            const $result = document.querySelector("#result");
+            let delay = 5000;
+            if (typeof res === "number") {
+              console.log(`成功添加到 anki`);
+              $result.innerText = "成功添加到 anki";
+              delay = 1000;
+            } else if (res.error === "cannot create note because it is a duplicate") {
+              console.log(`重复`);
+              $result.innerText = "卡片重复";
+            } else if (res.error) {
+              console.log(`err =====> `, res.error);
+              $result.innerText = JSON.stringify(res.error);
+            }
+
+            setTimeout(() => {
+              RemNoteAPI.v0.close_popup();
+            }, delay);
+          });
+        }
+
+        function getHistoryDeckNames() {
+          let historyDeckNames = window.sessionStorage.getItem("historyDeckNames");
+          if (historyDeckNames) {
+            try {
+              historyDeckNames = JSON.parse(historyDeckNames);
+            } catch (e) {}
+          }
+          return historyDeckNames || [];
         }
       })();
     </script>
