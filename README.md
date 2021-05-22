@@ -19,3 +19,7 @@ remnote 快速 anki 制卡
 ## 使用
 
 先打开 anki，然后光标聚焦到某 rem，触发快捷键。
+
+<video id="video" controls="" preload="none" poster="https://cdn.jsdelivr.net/gh/yoyooyooo/file@main/uPic/2021/05/22/%E5%B1%8F%E5%B9%95%E5%BD%95%E5%88%B62021-05-22%2013.15.01.mov">
+<source id="mp4" src="https://cdn.jsdelivr.net/gh/yoyooyooo/file@main/uPic/2021/05/22/%E5%B1%8F%E5%B9%95%E5%BD%95%E5%88%B62021-05-22%2013.15.01.mov" type="video/mp4">
+</video>
