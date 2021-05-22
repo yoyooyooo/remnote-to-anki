@@ -25,7 +25,7 @@ remnote 快速 anki 制卡。
 
 ## 使用
 
-先打开 anki，然后光标聚焦到某 rem，触发快捷键。
+先打开 anki，确保设置了[自定义卡片类型](#参考卡片类型)，或者存在 名称为 `remnote` 的卡片类型。然后光标聚焦到某 rem，触发快捷键。
 
 https://user-images.githubusercontent.com/18062745/119215477-7a3acc80-bb00-11eb-8c9b-ec66fcea096a.mov
 
