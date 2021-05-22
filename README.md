@@ -1,12 +1,12 @@
 remnote 快速 anki 制卡
 
-## 使用
+## 配置
 
 先安装 [anki-connect](https://ankiweb.net/shared/info/2055492159) 插件，然后设置里加上：
 
 ![](https://i.loli.net/2021/05/22/j3exZPbENtGAR4v.png)
 
-然后在 remnote 的插件列表里配置：
+然后在 remnote 的插件列表里配置并绑定快捷键：
 
 |             Plugin URL             | CSS Height | CSS width | Permissions | Location |
 | :--------------------------------: | :--------: | :-------: | :---------: | :------: |
@@ -16,4 +16,6 @@ remnote 快速 anki 制卡
 
 `https://remnote-to-anki.vercel.app?modelName=remnote&deckName=测试牌组`
 
-> github 备用地址： https://cdn.jsdelivr.net/gh/yoyooyooo/remnote-to-anki/index.html
+## 使用
+
+先打开 anki，然后光标聚焦到某 rem，触发快捷键。
