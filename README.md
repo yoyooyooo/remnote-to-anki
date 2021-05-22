@@ -1,4 +1,7 @@
-remnote 快速 anki 制卡
+remnote 快速 anki 制卡。
+
+> 相比 quicker 等工具制卡的优势：利用 remnote 内置的前端 api，可以获取更多 remnote 内部格式，如不同的高亮颜色。
+> quicker 等工具一般都只能靠复制后处理剪切板，但是 remnote 的一些格式复制不出来，如不同的高亮颜色。
 
 ## 配置
 
