@@ -49,7 +49,14 @@
           if (typeof a === "string") {
             return a;
           } else {
-            let text = a.text;
+            let text = a.text || "";
+            if (a.i === "i" && a.url) {
+              if (a.loading === false) {
+                text = `<img src="${a.url}" ${a.width ? `width="${a.width}"` : ""} ${
+                  a.height ? `height="${a.height}"` : ""
+                }/>`;
+              }
+            }
             if (a.type === "latex" || a.x) {
               text = `\\(${text}\\)`;
               if (a.block) {
@@ -92,6 +99,7 @@
         async function getRemText(remIdOrRem, withChildren = true) {
           const rem =
             typeof remIdOrRem === "string" ? await RemNoteAPI.v0.get(remIdOrRem) : remIdOrRem;
+          console.log(rem);
           const html = await Promise.all(rem.name.map((a) => parseRemName(a)));
 
           return `<div class="rem"><div class="main" style="display:flex;white-space:pre-wrap;"><div class="rem-text" style="width: 100%;">${html.join(
@@ -138,7 +146,7 @@
               }
 
               setTimeout(() => {
-                RemNoteAPI.v0.close_popup();
+                // RemNoteAPI.v0.close_popup();
               }, delay);
             })
             .catch((err) => {
