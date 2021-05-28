@@ -105,6 +105,10 @@
             return a;
           } else {
             let text = a.text || "";
+            // 链接
+            if (a.i === "m" && a.url) {
+              text = `<a href="url" target="_blank">${text}</a>`;
+            }
             // 图片
             if (a.i === "i" && a.url) {
               if (a.loading === false) {
