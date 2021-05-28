@@ -107,7 +107,7 @@
             let text = a.text || "";
             // 链接
             if (a.i === "m" && a.url) {
-              text = `<a href="url" target="_blank">${text}</a>`;
+              text = `<a href="url" target="_blank">${a.text}</a>`;
             }
             // 图片
             if (a.i === "i" && a.url) {
